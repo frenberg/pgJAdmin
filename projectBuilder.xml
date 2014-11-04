@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="pgjadmin.makejar" default="makejar" basedir=".">
+	<property environment="env" />
+
+	<!--<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="appbundler-1.0.jar" />-->
+
+	<target name ="makejar" description="Create a jar for the HW project">
+		<!--<jar jarfile="pgJAdmin.jar" includes="*.class" basedir="bin"/>-->
+        <jar destfile="pgJAdmin.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="com.frenberg.pgJAdmin.main.pgJAdmin"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ postgresql-9.3-1102.jdbc4.jar"/>
+            </manifest>
+            <zipfileset src="jar-in-jar-loader.zip"/>
+            <fileset dir="/Users/frenberg/source code/java/pgJAdmin/bin"/>
+            <zipfileset dir="/Users/frenberg/source code/java/pgJAdmin/lib" includes="postgresql-9.3-1102.jdbc4.jar"/>
+        </jar>
+	</target>
+
+	<target name="bundle-pgJAdmin">
+	    <bundleapp outputdirectory="dist"
+	        name="bundle-pgJAdmin"
+	        displayname="bundle-pgJAdmin"
+	        identifier="com.frenberg.pgJAdmin.main.pgJAdmin"
+	        mainclassname="com.frenberg.pgJAdmin.main.pgJAdmin">
+	        <runtime dir="${env.JAVA_HOME}" />
+	        <classpath file="dist/ButtonDemo.jar" />
+	    </bundleapp>
+	</target>
+
+</project>
