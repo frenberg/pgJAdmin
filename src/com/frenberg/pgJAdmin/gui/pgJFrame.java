@@ -25,6 +25,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingWorker;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.table.DefaultTableModel;
@@ -70,20 +71,20 @@ public class pgJFrame extends JFrame {
 		ConnectAction connectAction = new ConnectAction();
 		JMenuItem mntmConnect = new JMenuItem(connectAction);
 		fileMenu.add(mntmConnect);
-		
+
 		JMenuItem mntmOpen = new JMenuItem("Open");
 		fileMenu.add(mntmOpen);
 		JMenuItem mntmSave = new JMenuItem("Save");
 		fileMenu.add(mntmSave);
 		JMenuItem mntmClose = new JMenuItem("Close");
 		mntmClose.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				// save changes
 				System.exit(JFrame.EXIT_ON_CLOSE);
-				
+
 			}
 		});
 		fileMenu.add(mntmClose);
@@ -124,27 +125,61 @@ public class pgJFrame extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					// todo fix a swing worker thread instead
-					// new SwingWorker<Void, Void>() {
-					// @Override
-					// protected Void doInBackground() throws Exception {
-					// loadData();
-					// return null;
-					// }
-					// }.execute();
-					DefaultTableModel m = new QueryExecutor(connectionManager)
-							.executeQuery(queryTextPane.getText());
-					outputTable.setModel(m);
-				} catch (Exception e1) {
-					if (e1 instanceof PSQLException) {
-						JOptionPane.showMessageDialog(null,
-								((PSQLException) e1).getMessage());
-					} else {
-						// show connection dialog
-						new ConnectAction().actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Connect"));
+
+				SwingWorker worker = new SwingWorker<DefaultTableModel, Void>() {
+					@Override
+					protected DefaultTableModel doInBackground()
+							throws Exception {
+						DefaultTableModel m = null;
+						try {
+							QueryExecutor qe = new QueryExecutor(
+									connectionManager);
+							if (null != queryTextPane.getSelectedText()) {
+								m = qe.executeQuery(queryTextPane
+										.getSelectedText());
+							} else {
+								m = qe.executeQuery(queryTextPane.getText());
+							}
+							// outputTable.setModel(m);
+						} catch (Exception e1) {
+							if (e1 instanceof PSQLException) {
+								JOptionPane.showMessageDialog(null,
+										((PSQLException) e1).getMessage());
+							} else {
+								// show connection dialog
+								new ConnectAction()
+										.actionPerformed(new ActionEvent(this,
+												ActionEvent.ACTION_PERFORMED,
+												"Connect"));
+							}
+						}
+						return m;
 					}
-				}
+
+					@Override
+					protected void done() {
+						System.err.println("done!");
+						try {
+							DefaultTableModel m = get();
+							if (null != m) {
+								outputTable.setModel(m);
+							}
+						} catch (InterruptedException ignore) {
+						} catch (java.util.concurrent.ExecutionException e) {
+							String why = null;
+							Throwable cause = e.getCause();
+							if (cause != null) {
+								why = cause.getMessage();
+							} else {
+								why = e.getMessage();
+							}
+							System.err.println("An error occured: " + why);
+						}
+
+					}
+
+				};
+				worker.execute();
 			}
 		});
 		queryMenu.add(mntmExecuteQuery);
@@ -203,38 +238,44 @@ public class pgJFrame extends JFrame {
 		splitPane.setDividerLocation(.5f);
 
 	}
-	
+
 	private void showConnectionDialog() {
 		connectionManager.loadSettings();
 
 		ConnectJDialog connectionDialog = new ConnectJDialog(this);
 		connectionDialog.setUser(connectionManager.getUser());
 		connectionDialog.setPassword(connectionManager.getPassword());
-		if (connectionManager.getConnectionString() != null && !"".equals(connectionManager.getConnectionString())) {
-			connectionDialog.setConnectionString(connectionManager.getConnectionString());
+		if (connectionManager.getConnectionString() != null
+				&& !"".equals(connectionManager.getConnectionString())) {
+			connectionDialog.setConnectionString(connectionManager
+					.getConnectionString());
 		} else {
-			connectionDialog.setConnectionString("jdbc:postgresql://[host]:[port]/[database]");
+			connectionDialog
+					.setConnectionString("jdbc:postgresql://[host]:[port]/[database]");
 		}
 		connectionDialog.setSchema(connectionManager.getSchema());
-		connectionDialog.setVisible(true); // this will halt and go to modality mode
-		
+		connectionDialog.setVisible(true); // this will halt and go to modality
+											// mode
+
 		if (connectionDialog.useValues()) {
 			connectionManager.setUser(connectionDialog.getUser());
 			connectionManager.setPassword(connectionDialog.getPassword());
-			connectionManager.setConnectionString(connectionDialog.getConnectionString());
+			connectionManager.setConnectionString(connectionDialog
+					.getConnectionString());
 			connectionManager.setSchema(connectionDialog.getSchema());
-			
+
 			try {
 				connectionManager.saveSettings();
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
-				JOptionPane.showConfirmDialog(rootPane, e1.getMessage(), "Failed to save settings", JOptionPane.OK_OPTION);
+				JOptionPane.showConfirmDialog(rootPane, e1.getMessage(),
+						"Failed to save settings", JOptionPane.OK_OPTION);
 			}
 		} else {
 			System.err.println("Not using values");
 		}
-		
+
 		connectionDialog.dispose();
 	}
 
