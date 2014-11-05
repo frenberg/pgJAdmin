@@ -126,6 +126,7 @@ public class pgJFrame extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
+				@SuppressWarnings("rawtypes")
 				SwingWorker worker = new SwingWorker<DefaultTableModel, Void>() {
 					@Override
 					protected DefaultTableModel doInBackground()

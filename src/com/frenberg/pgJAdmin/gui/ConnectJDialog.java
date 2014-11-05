@@ -11,9 +11,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SpringLayout;
 
 import com.frenberg.pgJAdmin.db.ConnectionManager;
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
 
 @SuppressWarnings("serial")
 public class ConnectJDialog extends JDialog {
@@ -26,41 +29,52 @@ public class ConnectJDialog extends JDialog {
 	
 	public ConnectJDialog(JFrame owner) {
 		super(owner);
+		setTitle("Connect to database");
 		setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
 
 		JPanel panel = new JPanel();
 		getContentPane().add(panel);
-
-		SpringLayout springLayout = new SpringLayout();
-		panel.setLayout(springLayout);
+		panel.setLayout(new FormLayout(new ColumnSpec[] {
+				FormFactory.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("117px"),
+				FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
+				ColumnSpec.decode("24px"),
+				ColumnSpec.decode("116px"),
+				ColumnSpec.decode("86px"),
+				FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
+				ColumnSpec.decode("75px"),},
+			new RowSpec[] {
+				FormFactory.UNRELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				RowSpec.decode("29px"),
+				RowSpec.decode("29px"),}));
 
 		// User
 		JLabel lblUser = new JLabel("User:");
-		springLayout.putConstraint(SpringLayout.WEST, lblUser, 10, SpringLayout.WEST, panel);
-		panel.add(lblUser);
+		panel.add(lblUser, "2, 2, left, center");
 
 		// Password
 		JLabel lblPassword = new JLabel("Password:");
-		springLayout.putConstraint(SpringLayout.WEST, lblPassword, 10, SpringLayout.WEST, panel);
-		panel.add(lblPassword);
+		panel.add(lblPassword, "2, 4, left, center");
 
 		// Connection String		
 		JLabel lblConnectionString = new JLabel("Connection string:");
-		springLayout.putConstraint(SpringLayout.NORTH, lblConnectionString, 84, SpringLayout.NORTH, panel);
-		springLayout.putConstraint(SpringLayout.SOUTH, lblPassword, -18, SpringLayout.NORTH, lblConnectionString);
-		panel.add(lblConnectionString);
+		panel.add(lblConnectionString, "2, 6, left, center");
 
 		
 		// Schema
 		JLabel lblSchema = new JLabel("Schema:");
-		springLayout.putConstraint(SpringLayout.NORTH, lblSchema, 18, SpringLayout.SOUTH, lblConnectionString);
-		springLayout.putConstraint(SpringLayout.WEST, lblSchema, 10, SpringLayout.WEST, panel);
-		panel.add(lblSchema);
+		panel.add(lblSchema, "2, 8, left, center");
 
 		
 		// Actions
 		JButton btnSave = new JButton("Save");
-		springLayout.putConstraint(SpringLayout.EAST, btnSave, -10, SpringLayout.EAST, panel);
 		btnSave.addActionListener(new ActionListener() {
 			
 			@Override
@@ -71,11 +85,9 @@ public class ConnectJDialog extends JDialog {
 				
 			}
 		});
-		panel.add(btnSave);
+		panel.add(btnSave, "8, 10, left, top");
 		
 		JButton btnCancel = new JButton("Cancel");
-		springLayout.putConstraint(SpringLayout.NORTH, btnCancel, 0, SpringLayout.NORTH, btnSave);
-		springLayout.putConstraint(SpringLayout.EAST, btnCancel, -6, SpringLayout.WEST, btnSave);
 		btnCancel.addActionListener(new ActionListener() {
 			
 			@Override
@@ -84,12 +96,9 @@ public class ConnectJDialog extends JDialog {
 				closeDialog();
 			}
 		});
-		panel.add(btnCancel);
+		panel.add(btnCancel, "6, 10, left, top");
 		
 		JButton btnTestConnection = new JButton("Test Connection");
-		springLayout.putConstraint(SpringLayout.WEST, btnTestConnection, 10, SpringLayout.WEST, panel);
-		springLayout.putConstraint(SpringLayout.NORTH, btnSave, 0, SpringLayout.NORTH, btnTestConnection);
-		springLayout.putConstraint(SpringLayout.SOUTH, btnTestConnection, -10, SpringLayout.SOUTH, panel);
 		btnTestConnection.addActionListener(new ActionListener() {
 			
 			@Override
@@ -98,42 +107,29 @@ public class ConnectJDialog extends JDialog {
 				testConnection();
 			}
 		});
-		panel.add(btnTestConnection);
+		panel.add(btnTestConnection, "2, 10, 3, 1, left, top");
 		
 		passwordField = new JTextField();
-		springLayout.putConstraint(SpringLayout.WEST, passwordField, 60, SpringLayout.EAST, lblPassword);
-		springLayout.putConstraint(SpringLayout.EAST, passwordField, 0, SpringLayout.EAST, btnSave);
-		panel.add(passwordField);
+		panel.add(passwordField, "4, 4, 5, 1, fill, top");
 		passwordField.setColumns(10);
 		
 		userField = new JTextField();
-		springLayout.putConstraint(SpringLayout.WEST, userField, 91, SpringLayout.EAST, lblUser);
-		springLayout.putConstraint(SpringLayout.SOUTH, userField, -170, SpringLayout.SOUTH, panel);
-		springLayout.putConstraint(SpringLayout.EAST, userField, -10, SpringLayout.EAST, panel);
-		springLayout.putConstraint(SpringLayout.NORTH, lblUser, 6, SpringLayout.NORTH, userField);
-		springLayout.putConstraint(SpringLayout.NORTH, passwordField, 6, SpringLayout.SOUTH, userField);
-		panel.add(userField);
+		panel.add(userField, "4, 2, 5, 1, fill, top");
 		userField.setColumns(10);
 		
 		connectionStringField = new JTextField();
-		springLayout.putConstraint(SpringLayout.WEST, connectionStringField, 133, SpringLayout.WEST, panel);
-		springLayout.putConstraint(SpringLayout.EAST, lblConnectionString, -6, SpringLayout.WEST, connectionStringField);
-		springLayout.putConstraint(SpringLayout.SOUTH, passwordField, -6, SpringLayout.NORTH, connectionStringField);
-		springLayout.putConstraint(SpringLayout.EAST, connectionStringField, -10, SpringLayout.EAST, panel);
-		springLayout.putConstraint(SpringLayout.NORTH, connectionStringField, 78, SpringLayout.NORTH, panel);
-		panel.add(connectionStringField);
+		panel.add(connectionStringField, "4, 6, 5, 1, fill, top");
 		connectionStringField.setColumns(10);
 		
 		schemaField = new JTextField();
-		springLayout.putConstraint(SpringLayout.NORTH, schemaField, 6, SpringLayout.SOUTH, connectionStringField);
-		springLayout.putConstraint(SpringLayout.WEST, schemaField, 71, SpringLayout.EAST, lblSchema);
-		springLayout.putConstraint(SpringLayout.EAST, schemaField, 0, SpringLayout.EAST, btnSave);
-		panel.add(schemaField);
+		panel.add(schemaField, "4, 8, 5, 1, fill, top");
 		schemaField.setColumns(10);
 				
 		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 		setSize(450, 230);
 		setLocationRelativeTo(owner);
+		setResizable(false);
+		
 
 	}
 
