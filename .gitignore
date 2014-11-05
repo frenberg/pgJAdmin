@@ -5,6 +5,7 @@
 
 # Mac desktop files
 .DS_Store
+.classpath
 
 # Package Files #
 #*.jar

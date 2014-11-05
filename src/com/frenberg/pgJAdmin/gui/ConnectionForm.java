@@ -105,6 +105,11 @@ public class ConnectionForm extends JPanel {
 		springLayout.putConstraint(SpringLayout.NORTH, btnCancel, 0, SpringLayout.NORTH, btnSave);
 		springLayout.putConstraint(SpringLayout.EAST, btnCancel, -6, SpringLayout.WEST, btnSave);
 		add(btnCancel);
+		
+		JButton btnTestConnection = new JButton("Test Connection");
+		springLayout.putConstraint(SpringLayout.WEST, btnTestConnection, 0, SpringLayout.WEST, lblUser);
+		springLayout.putConstraint(SpringLayout.SOUTH, btnTestConnection, 0, SpringLayout.SOUTH, btnSave);
+		add(btnTestConnection);
 	
 	}
 

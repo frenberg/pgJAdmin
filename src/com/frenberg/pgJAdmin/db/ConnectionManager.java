@@ -83,6 +83,27 @@ public class ConnectionManager {
 	public void setConnectionString(String connectionString) {
 		this.connectionString = connectionString;
 	}
+	
+	public boolean testConnection(String user, String password, String connectionString, String schema) {
+		
+		Connection testConnection = null;
+		Properties testConnectionProperties = new Properties();
+		testConnectionProperties.put("user", user);
+		testConnectionProperties.put("password", password);
+		
+		try {
+			testConnection = DriverManager.getConnection(connectionString, testConnectionProperties);
+			
+			if (!"".equals(schema)) {
+				Statement stmt = testConnection.createStatement();
+				stmt.execute("SET search_path = " + schema);
+			}
+		} catch (SQLException e) {
+			return false;
+		}
+		
+		return true;
+	}
 
 	public Connection getConnection() throws SQLException {
 		Connection conn = null;

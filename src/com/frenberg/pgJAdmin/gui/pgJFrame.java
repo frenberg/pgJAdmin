@@ -4,7 +4,6 @@
 package com.frenberg.pgJAdmin.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -16,7 +15,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -205,6 +203,40 @@ public class pgJFrame extends JFrame {
 		splitPane.setDividerLocation(.5f);
 
 	}
+	
+	private void showConnectionDialog() {
+		connectionManager.loadSettings();
+
+		ConnectJDialog connectionDialog = new ConnectJDialog(this);
+		connectionDialog.setUser(connectionManager.getUser());
+		connectionDialog.setPassword(connectionManager.getPassword());
+		if (connectionManager.getConnectionString() != null && !"".equals(connectionManager.getConnectionString())) {
+			connectionDialog.setConnectionString(connectionManager.getConnectionString());
+		} else {
+			connectionDialog.setConnectionString("jdbc:postgresql://[host]:[port]/[database]");
+		}
+		connectionDialog.setSchema(connectionManager.getSchema());
+		connectionDialog.setVisible(true); // this will halt and go to modality mode
+		
+		if (connectionDialog.useValues()) {
+			connectionManager.setUser(connectionDialog.getUser());
+			connectionManager.setPassword(connectionDialog.getPassword());
+			connectionManager.setConnectionString(connectionDialog.getConnectionString());
+			connectionManager.setSchema(connectionDialog.getSchema());
+			
+			try {
+				connectionManager.saveSettings();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				JOptionPane.showConfirmDialog(rootPane, e1.getMessage(), "Failed to save settings", JOptionPane.OK_OPTION);
+			}
+		} else {
+			System.err.println("Not using values");
+		}
+		
+		connectionDialog.dispose();
+	}
 
 	protected class MyUndoableEditListener implements UndoableEditListener {
 		public void undoableEditHappened(UndoableEditEvent e) {
@@ -290,42 +322,7 @@ public class pgJFrame extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			connectionManager.loadSettings();
-			ConnectionForm connectionFormFrame = new ConnectionForm();
-			connectionFormFrame.getUserField().setText(connectionManager.getUser());
-			connectionFormFrame.getPasswordField().setText(connectionManager.getPassword());
-			connectionFormFrame.getSchemaField().setText(connectionManager.getSchema());
-			if (connectionManager.getConnectionString() != null && !"".equals(connectionManager.getConnectionString())) {
-				connectionFormFrame.getConnectionStringField().setText(connectionManager.getConnectionString());
-			} else {
-				connectionFormFrame.getConnectionStringField().setText("jdbc:postgresql://[host]:[port]/[database]");
-			}
-			
-			
-			JDialog connectionDialog = new JDialog(pgJFrame.this.getOwner(), Dialog.ModalityType.APPLICATION_MODAL);
-			connectionDialog.setContentPane(connectionFormFrame);
-			connectionDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
-			connectionDialog.setSize(450, 200);
-			connectionDialog.setVisible(true);
-
-			if (connectionFormFrame.useValues()) {
-				System.out.println("using values");
-				connectionManager.setUser(connectionFormFrame.getUserField().getText());
-				connectionManager.setPassword(connectionFormFrame.getPasswordField().getText());
-				connectionManager.setConnectionString(connectionFormFrame.getConnectionStringField().getText());
-				connectionManager.setSchema(connectionFormFrame.getSchemaField().getText());
-				try {
-					connectionManager.saveSettings();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-					JOptionPane.showConfirmDialog(rootPane, e1.getMessage(), "Failed to save settings", JOptionPane.OK_OPTION);
-				}
-			} else {
-				System.out.println("Not using values");
-				
-			}
-			
-			connectionDialog.dispose();
+			showConnectionDialog();
 		}
 
 	}
