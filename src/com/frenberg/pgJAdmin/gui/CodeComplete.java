@@ -1,5 +1,6 @@
 package com.frenberg.pgJAdmin.gui;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +10,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
 
 public class CodeComplete implements DocumentListener {
 	protected JTextPane textPane;
@@ -31,6 +36,8 @@ public class CodeComplete implements DocumentListener {
 		this.words.add("insert into");
 		this.words.add("join");
 		this.words.add("limit");
+		this.words.add("on");
+		this.words.add("or");
 		this.words.add("order by");
 		this.words.add("select");
 		this.words.add("table");
@@ -115,7 +122,17 @@ public class CodeComplete implements DocumentListener {
 		public void run() {
 			// textPane.insert(completion, position);
 			try {
-				textPane.getDocument().insertString(position, completion, null);
+				StyledDocument doc = textPane.getStyledDocument();
+//				doc.insertString(position, completion, null);
+				StyleContext context = new StyleContext();
+				// build a style
+				Style style = context.addStyle("test", null);
+				// set some style properties
+				StyleConstants.setForeground(style, Color.BLUE);
+				
+				doc.insertString(position, completion, style);
+				
+				
 			} catch (BadLocationException e) {
 				e.printStackTrace();
 			}
@@ -123,6 +140,6 @@ public class CodeComplete implements DocumentListener {
 			textPane.moveCaretPosition(position);
 			mode = Mode.COMPLETION;
 		}
-	}
+ 	}
 
 }

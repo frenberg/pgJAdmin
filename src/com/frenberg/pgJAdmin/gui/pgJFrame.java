@@ -78,6 +78,16 @@ public class pgJFrame extends JFrame {
 		JMenuItem mntmSave = new JMenuItem("Save");
 		fileMenu.add(mntmSave);
 		JMenuItem mntmClose = new JMenuItem("Close");
+		mntmClose.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				// save changes
+				System.exit(JFrame.EXIT_ON_CLOSE);
+				
+			}
+		});
 		fileMenu.add(mntmClose);
 
 		JMenu editMenu = new JMenu("Edit");
@@ -148,7 +158,8 @@ public class pgJFrame extends JFrame {
 		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		getContentPane().add(splitPane, BorderLayout.CENTER);
 
-		queryTextPane = new JTextPane();
+		DefaultStyledDocument doc = new DefaultStyledDocument();
+		queryTextPane = new JTextPane(doc);
 		queryTextPane.getDocument().addUndoableEditListener(
 				new MyUndoableEditListener());
 		final CodeComplete cc = new CodeComplete(queryTextPane);
@@ -291,7 +302,7 @@ public class pgJFrame extends JFrame {
 			}
 			
 			
-			JDialog connectionDialog = new JDialog(JOptionPane.getFrameForComponent(queryTextPane), Dialog.ModalityType.APPLICATION_MODAL);
+			JDialog connectionDialog = new JDialog(pgJFrame.this.getOwner(), Dialog.ModalityType.APPLICATION_MODAL);
 			connectionDialog.setContentPane(connectionFormFrame);
 			connectionDialog.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 			connectionDialog.setSize(450, 200);
