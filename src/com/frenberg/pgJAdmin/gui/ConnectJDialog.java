@@ -26,7 +26,7 @@ public class ConnectJDialog extends JDialog {
 	private JTextField userField;
 	private JTextField connectionStringField;
 	private JTextField schemaField;
-	
+
 	public ConnectJDialog(JFrame owner) {
 		super(owner);
 		setTitle("Connect to database");
@@ -35,25 +35,17 @@ public class ConnectJDialog extends JDialog {
 		JPanel panel = new JPanel();
 		getContentPane().add(panel);
 		panel.setLayout(new FormLayout(new ColumnSpec[] {
-				FormFactory.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("117px"),
+				FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("117px"),
 				FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("24px"),
-				ColumnSpec.decode("116px"),
+				ColumnSpec.decode("24px"), ColumnSpec.decode("116px"),
 				ColumnSpec.decode("86px"),
 				FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("75px"),},
-			new RowSpec[] {
-				FormFactory.UNRELATED_GAP_ROWSPEC,
-				RowSpec.decode("28px"),
-				FormFactory.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("28px"),
-				FormFactory.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("28px"),
-				FormFactory.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("28px"),
-				RowSpec.decode("29px"),
-				RowSpec.decode("29px"),}));
+				ColumnSpec.decode("75px"), }, new RowSpec[] {
+				FormFactory.UNRELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
+				RowSpec.decode("29px"), RowSpec.decode("29px"), }));
 
 		// User
 		JLabel lblUser = new JLabel("User:");
@@ -63,33 +55,31 @@ public class ConnectJDialog extends JDialog {
 		JLabel lblPassword = new JLabel("Password:");
 		panel.add(lblPassword, "2, 4, left, center");
 
-		// Connection String		
+		// Connection String
 		JLabel lblConnectionString = new JLabel("Connection string:");
 		panel.add(lblConnectionString, "2, 6, left, center");
 
-		
 		// Schema
 		JLabel lblSchema = new JLabel("Schema:");
 		panel.add(lblSchema, "2, 8, left, center");
 
-		
 		// Actions
 		JButton btnSave = new JButton("Save");
 		btnSave.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				useValues = true;
 				closeDialog();
-				
+
 			}
 		});
 		panel.add(btnSave, "8, 10, left, top");
-		
+
 		JButton btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
@@ -97,10 +87,10 @@ public class ConnectJDialog extends JDialog {
 			}
 		});
 		panel.add(btnCancel, "6, 10, left, top");
-		
+
 		JButton btnTestConnection = new JButton("Test Connection");
 		btnTestConnection.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
@@ -108,28 +98,27 @@ public class ConnectJDialog extends JDialog {
 			}
 		});
 		panel.add(btnTestConnection, "2, 10, 3, 1, left, top");
-		
+
 		passwordField = new JTextField();
 		panel.add(passwordField, "4, 4, 5, 1, fill, top");
 		passwordField.setColumns(10);
-		
+
 		userField = new JTextField();
 		panel.add(userField, "4, 2, 5, 1, fill, top");
 		userField.setColumns(10);
-		
+
 		connectionStringField = new JTextField();
 		panel.add(connectionStringField, "4, 6, 5, 1, fill, top");
 		connectionStringField.setColumns(10);
-		
+
 		schemaField = new JTextField();
 		panel.add(schemaField, "4, 8, 5, 1, fill, top");
 		schemaField.setColumns(10);
-				
+
 		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 		setSize(450, 230);
 		setLocationRelativeTo(owner);
 		setResizable(false);
-		
 
 	}
 
@@ -172,14 +161,23 @@ public class ConnectJDialog extends JDialog {
 	private void closeDialog() {
 		setVisible(false);
 	}
-	
+
 	private void testConnection() {
 		ConnectionManager cm = new ConnectionManager();
-		if (cm.testConnection(getUser(), getPassword(), getConnectionString(), getSchema())) {
-			JOptionPane.showMessageDialog(this, "Connection established", "Testing connection", JOptionPane.INFORMATION_MESSAGE);
-		} else {
-			JOptionPane.showMessageDialog(this, "Connection failed", "Testing connection", JOptionPane.ERROR_MESSAGE);
+		try {
+			if (cm.testConnection(getUser(), getPassword(),
+					getConnectionString(), getSchema())) {
+				JOptionPane.showMessageDialog(this, "Connection successful",
+						"Testing connection", JOptionPane.PLAIN_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(this, "Connection failed",
+						"Testing connection", JOptionPane.ERROR_MESSAGE);
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(),
+			        "Testing connection", JOptionPane.ERROR_MESSAGE);
+
 		}
-		
+
 	}
 }

@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -84,7 +85,7 @@ public class ConnectionManager {
 		this.connectionString = connectionString;
 	}
 	
-	public boolean testConnection(String user, String password, String connectionString, String schema) {
+	public boolean testConnection(String user, String password, String connectionString, String schema) throws Exception {
 		
 		Connection testConnection = null;
 		Properties testConnectionProperties = new Properties();
@@ -96,12 +97,17 @@ public class ConnectionManager {
 			
 			if (!"".equals(schema)) {
 				Statement stmt = testConnection.createStatement();
-				stmt.execute("SET search_path = " + schema);
+//				stmt.execute("SET search_path = " + schema);
+				ResultSet rs = stmt.executeQuery("SELECT count(schema_name) > 0 FROM information_schema.schemata WHERE schema_name = '" + schema + "'");
+				if (rs.next() && !rs.getBoolean(1)) {
+					throw new Exception("Invalid schema.");
+				}
+				
 			}
 		} catch (SQLException e) {
 			return false;
 		}
-		
+		testConnection.close();
 		return true;
 	}
 

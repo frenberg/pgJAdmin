@@ -1,6 +1,7 @@
 package com.frenberg.pgJAdmin.gui;
 
 import java.awt.Color;
+import java.util.regex.Pattern;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -14,6 +15,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
     final StyleContext cont = StyleContext.getDefaultStyleContext();
     final AttributeSet attr = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLUE);
     final AttributeSet attrBlack = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLACK);
+    final Pattern pattern = Pattern.compile("(\\W)*(asc|create|desc|from|insert\\ into|join|limit|on|or|order\\ by|select|table|update|values|where)", Pattern.CASE_INSENSITIVE);
 	
     
 	/* (non-Javadoc)
@@ -30,7 +32,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
 			before = 0;
 		int after = findFirstNonWordChar(text, offs);
 
-		if (text.substring(before, after).matches("(\\W)*(asc|create|desc|from|insert\\ into|join|limit|on|or|order\\ by|select|table|update|values|where)")) {
+		if (pattern.matcher(text.substring(before, after)).matches()) {
 			setCharacterAttributes(before, after - before, attr, false);
 		} else {
 			setCharacterAttributes(before, after - before, attrBlack, false);
@@ -56,7 +58,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
 
         while (wordR <= after) {
             if (wordR == after || String.valueOf(text.charAt(wordR)).matches("\\W")) {
-           		if (text.substring(wordL, wordR).matches("(\\W)*(asc|create|desc|from|insert\\ into|join|limit|on|or|order\\ by|select|table|update|values|where)"))
+       			if (pattern.matcher(text.substring(wordL, wordR)).matches())
                     setCharacterAttributes(wordL, wordR - wordL, attr, false);
                 else
                     setCharacterAttributes(wordL, wordR - wordL, attrBlack, false);

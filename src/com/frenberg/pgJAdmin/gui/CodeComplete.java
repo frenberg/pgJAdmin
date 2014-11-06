@@ -76,7 +76,7 @@ public class CodeComplete implements DocumentListener {
 		int n = Collections.binarySearch(words, prefix);
 		if (n < 0 && -n <= words.size()) {
 			String match = words.get(-n - 1);
-			if (match.startsWith(prefix)) {
+			if (match.startsWith(prefix)) { //TODO check if this check is needed?
 				// A completion is found
 				String completion = match.substring(pos - w);
 				// We cannot modify Document from within notification,
