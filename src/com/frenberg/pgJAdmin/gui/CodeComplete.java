@@ -79,6 +79,10 @@ public class CodeComplete implements DocumentListener {
 			if (match.startsWith(prefix)) { //TODO check if this check is needed?
 				// A completion is found
 				String completion = match.substring(pos - w);
+				// Are we typing in upper case?
+				if (Character.isUpperCase(content.substring(w + 1).codePointAt(prefix.length()-1))) {
+					completion = completion.toUpperCase();
+				}
 				// We cannot modify Document from within notification,
 				// so we submit a task that does the change later
 				SwingUtilities.invokeLater(new CompletionTask(completion,
