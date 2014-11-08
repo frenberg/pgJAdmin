@@ -9,7 +9,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -85,6 +87,18 @@ public class ConnectionManager {
 		this.connectionString = connectionString;
 	}
 	
+	public boolean testConnection() {
+	    boolean response = false;
+	    try {
+	        if (testConnection(getUser(), getPassword(), getConnectionString(), getSchema())) {
+	            return true;
+	        }
+	    } catch(Exception e) {
+	        
+	    }
+	    return response;
+	}
+	
 	public boolean testConnection(String user, String password, String connectionString, String schema) throws Exception {
 		
 		Connection testConnection = null;
@@ -97,7 +111,6 @@ public class ConnectionManager {
 			
 			if (!"".equals(schema)) {
 				Statement stmt = testConnection.createStatement();
-//				stmt.execute("SET search_path = " + schema);
 				ResultSet rs = stmt.executeQuery("SELECT count(schema_name) > 0 FROM information_schema.schemata WHERE schema_name = '" + schema + "'");
 				if (rs.next() && !rs.getBoolean(1)) {
 					throw new Exception("Invalid schema.");
@@ -227,6 +240,28 @@ public class ConnectionManager {
 
 		return false;
 	}
+
+	
+	/**
+	 * 
+	 * @return
+	 * @throws SQLException 
+	 */
+	public List<String> getAvailableTables() throws SQLException {
+        List<String> tables = new ArrayList<String>();
+        String schema = !"".equals(this.schema) ? this.schema : "public"; 
+        
+        Connection con = getConnection();
+        Statement stmt = con.createStatement();
+        
+        ResultSet rs = stmt.executeQuery("SELECT tablename FROM pg_tables WHERE schemaname = '"+ schema + "' ORDER BY tablename");
+        while (rs.next()) {
+            tables.add(rs.getString(1));
+        }
+            
+        
+        return tables;
+    }
 
 
 }

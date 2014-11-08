@@ -8,6 +8,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
+import com.frenberg.pgJAdmin.utils.Keywords;
+
 @SuppressWarnings("serial")
 public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocument {
 
@@ -15,7 +17,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
     final StyleContext cont = StyleContext.getDefaultStyleContext();
     final AttributeSet attr = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLUE);
     final AttributeSet attrBlack = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLACK);
-    final Pattern pattern = Pattern.compile("(\\W)*(asc|create|desc|from|insert\\ into|join|limit|on|or|order\\ by|select|table|update|values|where)", Pattern.CASE_INSENSITIVE);
+    final Pattern pattern = Pattern.compile(Keywords.getRegexString(), Pattern.CASE_INSENSITIVE);
 	
     
 	/* (non-Javadoc)

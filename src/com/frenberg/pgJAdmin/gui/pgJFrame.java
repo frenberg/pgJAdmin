@@ -9,12 +9,21 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -28,6 +37,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingWorker;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.undo.CannotRedoException;
@@ -53,17 +63,64 @@ public class pgJFrame extends JFrame {
     protected RedoAction        redoAction;
     protected JTextPane         queryTextPane;
     protected JTable            outputTable;
+    protected CodeComplete      codeCompletetionDocumentListener;
+    protected JFileChooser      filechooser       = new JFileChooser();
 
     /**
      * @param title
      * @throws HeadlessException
      */
-    @SuppressWarnings("serial")
     public pgJFrame(String title) throws HeadlessException {
         super(title);
         setBounds(100, 100, 800, 600);
 
-        // MENU
+        getContentPane().setLayout(new BorderLayout(0, 0));
+        buildMenu();
+
+        JSplitPane splitPane = buildGui();
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        getContentPane().add(splitPane, BorderLayout.CENTER);
+        setVisible(true);
+        splitPane.setDividerLocation(.5f);
+
+        filechooser.setAcceptAllFileFilterUsed(false);
+        filechooser.setFileFilter(new FileFilter() {
+
+            @Override
+            public String getDescription() {
+                return "SQL files";
+            }
+
+            @Override
+            public boolean accept(File f) {
+                if (f.isDirectory()) {
+                    return true;
+                }
+
+                String extension = null;
+                String s = f.getName();
+                int i = s.lastIndexOf('.');
+
+                if (i > 0 && i < s.length() - 1) {
+                    extension = s.substring(i + 1).toLowerCase();
+                }
+
+                if (extension != null) {
+                    if (extension.equals("sql")) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                return false;
+            }
+        });
+
+    }
+
+    protected void buildMenu() {
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         JMenu fileMenu = new JMenu("File");
@@ -72,9 +129,11 @@ public class pgJFrame extends JFrame {
         JMenuItem mntmConnect = new JMenuItem(connectAction);
         fileMenu.add(mntmConnect);
 
-        JMenuItem mntmOpen = new JMenuItem("Open");
+        OpenAction openAction = new OpenAction();
+        JMenuItem mntmOpen = new JMenuItem(openAction);
         fileMenu.add(mntmOpen);
-        JMenuItem mntmSave = new JMenuItem("Save");
+        SaveAction saveAction = new SaveAction();
+        JMenuItem mntmSave = new JMenuItem(saveAction);
         fileMenu.add(mntmSave);
         JMenuItem mntmClose = new JMenuItem("Close");
         mntmClose.addActionListener(new ActionListener() {
@@ -116,121 +175,50 @@ public class pgJFrame extends JFrame {
         JMenu queryMenu = new JMenu("Query");
         menuBar.add(queryMenu);
 
-        JMenuItem mntmExecuteQuery = new JMenuItem("Execute query");
+        QueryAction queryAction = new QueryAction();
+        JMenuItem mntmExecuteQuery = new JMenuItem(queryAction);
         mntmExecuteQuery.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit()
                 .getMenuShortcutKeyMask()));
-        mntmExecuteQuery.addActionListener(new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                @SuppressWarnings("rawtypes")
-                SwingWorker worker = new SwingWorker<DefaultTableModel, Void>() {
-                    @Override
-                    protected DefaultTableModel doInBackground() throws Exception {
-                        DefaultTableModel m = null;
-                        try {
-                            QueryExecutor qe = new QueryExecutor(connectionManager);
-                            if (null != queryTextPane.getSelectedText()) {
-                                m = qe.executeQuery(queryTextPane.getSelectedText());
-                            } else {
-                                m = qe.executeQuery(queryTextPane.getText());
-                            }
-                            // outputTable.setModel(m);
-                        } catch (Exception e1) {
-                            if (e1 instanceof PSQLException) {
-                                JOptionPane.showMessageDialog(null, ((PSQLException) e1).getMessage());
-                            } else {
-                                // show connection dialog
-                                new ConnectAction().actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                                        "Connect"));
-                            }
-                        }
-                        return m;
-                    }
-
-                    @Override
-                    protected void done() {
-                        System.err.println("Thread done, getting result.");
-                        try {
-                            DefaultTableModel m = get();
-                            if (null != m) {
-                                outputTable.setModel(m);
-                            }
-                        } catch (InterruptedException ignore) {
-                        } catch (java.util.concurrent.ExecutionException e) {
-                            String why = null;
-                            Throwable cause = e.getCause();
-                            if (cause != null) {
-                                why = cause.getMessage();
-                            } else {
-                                why = e.getMessage();
-                            }
-                            System.err.println("An error occured: " + why);
-                        }
-
-                    }
-
-                };
-                worker.execute();
-            }
-        });
         queryMenu.add(mntmExecuteQuery);
+        
+        IndexAction indexAction = new IndexAction();
+        JMenuItem mntmIndexTables = new JMenuItem(indexAction);
+        queryMenu.add(mntmIndexTables);
+        
+    }
 
-        getContentPane().setLayout(new BorderLayout(0, 0));
-
-        // SPLIT PANE
+    protected JSplitPane buildGui() {
         JSplitPane splitPane = new JSplitPane();
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
-        getContentPane().add(splitPane, BorderLayout.CENTER);
 
         DefaultStyledDocument doc = new DefaultStyledDocument();
         queryTextPane = new JTextPane(doc);
         queryTextPane.getDocument().addUndoableEditListener(new MyUndoableEditListener());
-        final CodeComplete cc = new CodeComplete(queryTextPane);
-        queryTextPane.getDocument().addDocumentListener(cc);
+        codeCompletetionDocumentListener = new CodeComplete(queryTextPane);
+        queryTextPane.getDocument().addDocumentListener(codeCompletetionDocumentListener);
         InputMap im = queryTextPane.getInputMap();
         ActionMap am = queryTextPane.getActionMap();
         im.put(KeyStroke.getKeyStroke("ENTER"), "commit");
-        am.put("commit", new AbstractAction() {
-
-            public void actionPerformed(ActionEvent ev) {
-                if (cc.getMode() == Mode.COMPLETION) {
-                    int pos = queryTextPane.getSelectionEnd();
-                    try {
-                        queryTextPane.getDocument().insertString(pos, " ", null);
-                    } catch (BadLocationException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    queryTextPane.setCaretPosition(pos + 1);
-                    cc.setMode(Mode.INSERT);
-                } else {
-                    queryTextPane.replaceSelection("\n");
-                }
-            }
-
-        });
+        am.put("commit", new CommitAction());
 
         // OUTPUT TEXTAREA
         outputTable = new JTable();
+        outputTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         // ADD QUERY TEXTAREA TO SCROLLPANE
         JScrollPane queryScrollPane = new JScrollPane(queryTextPane);
         splitPane.setLeftComponent(queryScrollPane);
 
         // ADD OUTPUT TEXTAREA TO OTHER SCROLLPANE
-        // JScrollPane outputScrollPane = new JScrollPane(outputTextArea);
-        JScrollPane outputScrollPane = new JScrollPane(outputTable);
+        JScrollPane outputScrollPane = new JScrollPane(outputTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         splitPane.setRightComponent(outputScrollPane);
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setVisible(true);
-        splitPane.setDividerLocation(.5f);
-
+        return splitPane;
     }
 
-    private void showConnectionDialog() {
+    protected void showConnectionDialog() {
         connectionManager.loadSettings();
 
         ConnectJDialog connectionDialog = new ConnectJDialog(this);
@@ -246,10 +234,10 @@ public class pgJFrame extends JFrame {
                                            // mode
 
         if (connectionDialog.useValues()) {
-            connectionManager.setUser(connectionDialog.getUser());
-            connectionManager.setPassword(connectionDialog.getPassword());
-            connectionManager.setConnectionString(connectionDialog.getConnectionString());
-            connectionManager.setSchema(connectionDialog.getSchema());
+            connectionManager.setUser(connectionDialog.getUser().trim());
+            connectionManager.setPassword(connectionDialog.getPassword().trim());
+            connectionManager.setConnectionString(connectionDialog.getConnectionString().trim());
+            connectionManager.setSchema(connectionDialog.getSchema().trim());
 
             try {
                 connectionManager.saveSettings();
@@ -264,6 +252,17 @@ public class pgJFrame extends JFrame {
         }
 
         connectionDialog.dispose();
+    }
+
+    protected boolean extendCodeComplete() {
+        List<String> sortedTables = null;
+        try {
+            sortedTables = connectionManager.getAvailableTables();
+        } catch(Exception e) {
+            return false;
+        }
+        codeCompletetionDocumentListener.appendSortedListOfWordsToAutoComplete(sortedTables);
+        return true;
     }
 
     protected class MyUndoableEditListener implements UndoableEditListener {
@@ -354,4 +353,182 @@ public class pgJFrame extends JFrame {
         }
 
     }
+
+    @SuppressWarnings("serial")
+    protected class QueryAction extends AbstractAction {
+
+        public QueryAction() {
+            super("Execute query");
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            SwingWorker worker = new SwingWorker<DefaultTableModel, Void>() {
+                @Override
+                protected DefaultTableModel doInBackground() throws Exception {
+                    DefaultTableModel m = null;
+                    String query = (null != queryTextPane.getSelectedText()) ? queryTextPane.getSelectedText() : queryTextPane.getText();
+                    
+                    try {
+                        QueryExecutor qe = new QueryExecutor(connectionManager);
+                        m = qe.executeQuery(query);
+                    } catch (Exception e1) {
+                        if (e1 instanceof PSQLException) {
+                            JOptionPane.showMessageDialog(pgJFrame.this, ((PSQLException) e1).getMessage());
+                        } else {
+                            // show connection dialog
+                            new ConnectAction().actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
+                                    "Connect"));
+                        }
+                    }
+                    return m;
+                }
+
+                @Override
+                protected void done() {
+                    System.err.println("Thread done, getting result.");
+                    try {
+                        DefaultTableModel m = get();
+                        if (null != m) {
+                            outputTable.setModel(m);
+                        }
+                    } catch (InterruptedException ignore) {
+                    } catch (java.util.concurrent.ExecutionException e) {
+                        String why = null;
+                        Throwable cause = e.getCause();
+                        if (cause != null) {
+                            why = cause.getMessage();
+                        } else {
+                            why = e.getMessage();
+                        }
+                        System.err.println("An error occured: " + why);
+                    }
+
+                }
+
+            };
+            worker.execute();
+
+        }
+
+    }
+
+    @SuppressWarnings("serial")
+    protected class CommitAction extends AbstractAction {
+
+        public void actionPerformed(ActionEvent ev) {
+            if (codeCompletetionDocumentListener.getMode() == Mode.COMPLETION) {
+                int pos = queryTextPane.getSelectionEnd();
+                try {
+                    queryTextPane.getDocument().insertString(pos, " ", null);
+                } catch (BadLocationException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                queryTextPane.setCaretPosition(pos + 1);
+                codeCompletetionDocumentListener.setMode(Mode.INSERT);
+            } else {
+                queryTextPane.replaceSelection("\n");
+            }
+        }
+    }
+
+    @SuppressWarnings("serial")
+    protected class SaveAction extends AbstractAction {
+
+        public SaveAction() {
+            super("Save");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int returnVal = filechooser.showSaveDialog(pgJFrame.this);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = filechooser.getSelectedFile();
+
+                FileWriter fileOutputStream;
+                try {
+                    fileOutputStream = new FileWriter(file);
+                    BufferedWriter out = new BufferedWriter(fileOutputStream);
+                    out.write(queryTextPane.getDocument().getText(0, queryTextPane.getDocument().getLength()));
+                    out.close();
+                } catch (IOException | BadLocationException e1) {
+                    JOptionPane.showMessageDialog(pgJFrame.this, e1.getMessage(), "Could not save file", JOptionPane.PLAIN_MESSAGE);
+                }
+
+            } else {
+                System.err.println("Save command cancelled by user.");
+            }
+        }
+
+    }
+
+    @SuppressWarnings("serial")
+    protected class OpenAction extends AbstractAction {
+
+        public OpenAction() {
+            super("Open");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String fileRow = null;
+            int returnVal = filechooser.showOpenDialog(pgJFrame.this);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+
+                try {
+                    File file = filechooser.getSelectedFile();
+                    FileInputStream fileInputStream;
+                    fileInputStream = new FileInputStream(file);
+                    // Get the object of DataInputStream
+                    DataInputStream in = new DataInputStream(fileInputStream);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+                    // Read File (Line By Line, nope?)
+                    StringBuilder sb = new StringBuilder();
+
+                    while ((fileRow = br.readLine()) != null) {
+                        sb.append(fileRow);
+                    }
+                    queryTextPane.setText(sb.toString());
+
+                    // Close the input stream
+                    in.close();
+                } catch(IOException e1) {
+                    JOptionPane.showMessageDialog(pgJFrame.this, e1.getMessage(), "Could not save file", JOptionPane.PLAIN_MESSAGE);
+                }
+            } else {
+                System.err.println("Open command cancelled by user.");
+            }
+        }
+
+    }
+    
+    
+    @SuppressWarnings("serial")
+    protected class IndexAction extends AbstractAction {
+        
+        public IndexAction() {
+            super("Index tables");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            new SwingWorker<Boolean, Void>() {
+
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    extendCodeComplete();
+                    System.err.println("Done indexing tables.");
+                    return true;
+                }
+                
+            }.execute();
+        }
+        
+    }
+
 }
