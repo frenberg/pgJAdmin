@@ -267,10 +267,12 @@ public class pgJFrame extends JFrame {
 
     protected class MyUndoableEditListener implements UndoableEditListener {
         public void undoableEditHappened(UndoableEditEvent e) {
-            // Remember the edit and update the menus
-            undoManager.addEdit(e.getEdit());
-            undoAction.updateUndoState();
-            redoAction.updateRedoState();
+            // Remember the edit and update the menus (Unless its a style change (color keywords)
+            if (!e.getEdit().getPresentationName().equals("style change")) {
+                undoManager.addEdit(e.getEdit());
+                undoAction.updateUndoState();
+                redoAction.updateRedoState();
+            }
         }
     }
 

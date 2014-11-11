@@ -8,7 +8,7 @@ import com.google.common.base.Joiner;
 public class Keywords {
 
     public static List<String> getKeywords() {
-        List<String> keywords = new ArrayList<String>(401); // TODO count and init size
+        List<String> keywords = new ArrayList<String>(401);
         keywords.add("abort");
         keywords.add("absolute");
         keywords.add("access");

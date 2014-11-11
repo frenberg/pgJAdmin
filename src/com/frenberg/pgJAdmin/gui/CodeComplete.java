@@ -19,7 +19,7 @@ import com.frenberg.pgJAdmin.utils.Keywords;
 
 public class CodeComplete implements DocumentListener {
     protected JTextPane  textPane;
-    private List<String> words = new ArrayList<String>(20);
+    private List<String> words = new ArrayList<String>(410);
 
     public static enum Mode {
         INSERT, COMPLETION
@@ -30,7 +30,12 @@ public class CodeComplete implements DocumentListener {
     public CodeComplete(JTextPane textPane) {
         super();
         this.textPane = textPane;
+        resetKeywords();
+    }
+
+    public void resetKeywords() {
         this.words = Keywords.getKeywords();
+        
     }
 
     @Override
@@ -136,6 +141,7 @@ public class CodeComplete implements DocumentListener {
                 doc.insertString(position, completion, style);
 
             } catch (BadLocationException e) {
+                System.err.println("Bad location exception from code complete task. " + e.getMessage());
                 e.printStackTrace();
             }
             textPane.setCaretPosition(position + completion.length());

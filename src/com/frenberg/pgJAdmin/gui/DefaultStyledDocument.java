@@ -15,7 +15,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
 
 
     final StyleContext cont = StyleContext.getDefaultStyleContext();
-    final AttributeSet attr = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLUE);
+    final AttributeSet attrBlue = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLUE);
     final AttributeSet attrBlack = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLACK);
     final Pattern pattern = Pattern.compile(Keywords.getRegexString(), Pattern.CASE_INSENSITIVE);
 	
@@ -35,7 +35,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
 		int after = findFirstNonWordChar(text, offs);
 
 		if (pattern.matcher(text.substring(before, after)).matches()) {
-			setCharacterAttributes(before, after - before, attr, false);
+			setCharacterAttributes(before, after - before, attrBlue, false);
 		} else {
 			setCharacterAttributes(before, after - before, attrBlack, false);
 		}
@@ -61,7 +61,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
         while (wordR <= after) {
             if (wordR == after || String.valueOf(text.charAt(wordR)).matches("\\W")) {
        			if (pattern.matcher(text.substring(wordL, wordR)).matches())
-                    setCharacterAttributes(wordL, wordR - wordL, attr, false);
+                    setCharacterAttributes(wordL, wordR - wordL, attrBlue, false);
                 else
                     setCharacterAttributes(wordL, wordR - wordL, attrBlack, false);
                 wordL = wordR;
