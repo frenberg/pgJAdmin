@@ -247,8 +247,11 @@ public class pgJFrame extends JFrame {
                 JOptionPane.showConfirmDialog(rootPane, e1.getMessage(), "Failed to save settings",
                         JOptionPane.OK_OPTION);
             }
+            codeCompletetionDocumentListener.resetKeywords();
+            new IndexAction().actionPerformed(new ActionEvent(pgJFrame.this, ActionEvent.ACTION_PERFORMED, "Index tables"));
+        
         } else {
-            System.err.println("Not using values");
+            System.err.println("Not saving values");
         }
 
         connectionDialog.dispose();
@@ -523,8 +526,12 @@ public class pgJFrame extends JFrame {
 
                 @Override
                 protected Boolean doInBackground() throws Exception {
-                    extendCodeComplete();
-                    System.err.println("Done indexing tables.");
+                    boolean result = extendCodeComplete();
+                    if (result) {
+                        System.err.println("Done indexing tables.");
+                    } else {
+                        System.err.println("Failed indexing tables.");
+                    }
                     return true;
                 }
                 
