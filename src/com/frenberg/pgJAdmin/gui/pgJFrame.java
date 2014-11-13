@@ -200,7 +200,7 @@ public class pgJFrame extends JFrame {
         InputMap im = queryTextPane.getInputMap();
         ActionMap am = queryTextPane.getActionMap();
         im.put(KeyStroke.getKeyStroke("ENTER"), "commit");
-        am.put("commit", new CommitAction());
+        am.put("commit", new SelectAutocompleteAction());
 
         // OUTPUT TEXTAREA
         outputTable = new JTable();
@@ -420,7 +420,7 @@ public class pgJFrame extends JFrame {
     }
 
     @SuppressWarnings("serial")
-    protected class CommitAction extends AbstractAction {
+    protected class SelectAutocompleteAction extends AbstractAction {
 
         public void actionPerformed(ActionEvent ev) {
             if (codeCompletetionDocumentListener.getMode() == Mode.COMPLETION) {
@@ -481,7 +481,8 @@ public class pgJFrame extends JFrame {
         public void actionPerformed(ActionEvent e) {
             String fileRow = null;
             int returnVal = filechooser.showOpenDialog(pgJFrame.this);
-
+            DefaultStyledDocument doc = (DefaultStyledDocument) queryTextPane.getStyledDocument();
+            
             if (returnVal == JFileChooser.APPROVE_OPTION) {
 
                 try {
@@ -492,18 +493,15 @@ public class pgJFrame extends JFrame {
                     DataInputStream in = new DataInputStream(fileInputStream);
                     BufferedReader br = new BufferedReader(new InputStreamReader(in));
 
-                    // Read File (Line By Line, nope?)
-                    StringBuilder sb = new StringBuilder();
-
                     while ((fileRow = br.readLine()) != null) {
-                        sb.append(fileRow);
+                        doc.insertString(doc.getLength(), fileRow, null);
+
                     }
-                    queryTextPane.setText(sb.toString());
 
                     // Close the input stream
                     in.close();
-                } catch(IOException e1) {
-                    JOptionPane.showMessageDialog(pgJFrame.this, e1.getMessage(), "Could not save file", JOptionPane.PLAIN_MESSAGE);
+                } catch(IOException | BadLocationException e1) {
+                    JOptionPane.showMessageDialog(pgJFrame.this, e1.getMessage(), "Could not open file", JOptionPane.PLAIN_MESSAGE);
                 }
             } else {
                 System.err.println("Open command cancelled by user.");
