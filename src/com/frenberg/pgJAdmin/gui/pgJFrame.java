@@ -9,14 +9,11 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -192,8 +189,10 @@ public class pgJFrame extends JFrame {
         JSplitPane splitPane = new JSplitPane();
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 
-        DefaultStyledDocument doc = new DefaultStyledDocument();
-        queryTextPane = new JTextPane(doc);
+//        DefaultStyledDocument doc = new DefaultStyledDocument();
+//        queryTextPane = new JTextPane(doc);
+        queryTextPane = new JTextPane();
+        queryTextPane.setEditorKit(new QueryEditorKit());
         queryTextPane.getDocument().addUndoableEditListener(new MyUndoableEditListener());
         codeCompletetionDocumentListener = new CodeComplete(queryTextPane);
         queryTextPane.getDocument().addDocumentListener(codeCompletetionDocumentListener);
@@ -463,8 +462,6 @@ public class pgJFrame extends JFrame {
                     JOptionPane.showMessageDialog(pgJFrame.this, e1.getMessage(), "Could not save file", JOptionPane.PLAIN_MESSAGE);
                 }
 
-            } else {
-                System.err.println("Save command cancelled by user.");
             }
         }
 
@@ -479,32 +476,17 @@ public class pgJFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String fileRow = null;
             int returnVal = filechooser.showOpenDialog(pgJFrame.this);
-            DefaultStyledDocument doc = (DefaultStyledDocument) queryTextPane.getStyledDocument();
             
             if (returnVal == JFileChooser.APPROVE_OPTION) {
 
                 try {
                     File file = filechooser.getSelectedFile();
-                    FileInputStream fileInputStream;
-                    fileInputStream = new FileInputStream(file);
-                    // Get the object of DataInputStream
-                    DataInputStream in = new DataInputStream(fileInputStream);
-                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
-
-                    while ((fileRow = br.readLine()) != null) {
-                        doc.insertString(doc.getLength(), fileRow, null);
-
-                    }
-
-                    // Close the input stream
-                    in.close();
+                    DefaultStyledDocument doc = (DefaultStyledDocument) queryTextPane.getDocument();
+                    queryTextPane.getEditorKit().read(new FileInputStream(file), doc, 0);
                 } catch(IOException | BadLocationException e1) {
                     JOptionPane.showMessageDialog(pgJFrame.this, e1.getMessage(), "Could not open file", JOptionPane.PLAIN_MESSAGE);
                 }
-            } else {
-                System.err.println("Open command cancelled by user.");
             }
         }
 
