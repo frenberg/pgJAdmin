@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.frenberg.pgJAdmin.gui;
 
@@ -115,7 +115,7 @@ public class pgJFrame extends JFrame {
                 return false;
             }
         });
-        
+
     }
 
     protected void buildMenu() {
@@ -179,19 +179,19 @@ public class pgJFrame extends JFrame {
                 .getMenuShortcutKeyMask()));
 
         queryMenu.add(mntmExecuteQuery);
-        
+
         IndexAction indexAction = new IndexAction();
         JMenuItem mntmIndexTables = new JMenuItem(indexAction);
         queryMenu.add(mntmIndexTables);
-        
+
     }
 
     protected JSplitPane buildGui() {
         JSplitPane splitPane = new JSplitPane();
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 
-//        DefaultStyledDocument doc = new DefaultStyledDocument();
-//        queryTextPane = new JTextPane(doc);
+        //        DefaultStyledDocument doc = new DefaultStyledDocument();
+        //        queryTextPane = new JTextPane(doc);
         queryTextPane = new JTextPane();
         queryTextPane.setEditorKit(new QueryEditorKit());
         queryTextPane.getDocument().addUndoableEditListener(new MyUndoableEditListener());
@@ -208,6 +208,8 @@ public class pgJFrame extends JFrame {
 
         // ADD QUERY TEXTAREA TO SCROLLPANE
         JScrollPane queryScrollPane = new JScrollPane(queryTextPane);
+        TextLineNumber tln = new TextLineNumber(queryTextPane, 3);
+        queryScrollPane.setRowHeaderView(tln);
         splitPane.setLeftComponent(queryScrollPane);
 
         // ADD OUTPUT TEXTAREA TO OTHER SCROLLPANE
@@ -231,7 +233,7 @@ public class pgJFrame extends JFrame {
         }
         connectionDialog.setSchema(connectionManager.getSchema());
         connectionDialog.setVisible(true); // this will halt and go to modality
-                                           // mode
+        // mode
 
         if (connectionDialog.useValues()) {
             connectionManager.setUser(connectionDialog.getUser().trim());
@@ -249,7 +251,7 @@ public class pgJFrame extends JFrame {
             }
             codeCompletetionDocumentListener.resetKeywords();
             new IndexAction().actionPerformed(new ActionEvent(pgJFrame.this, ActionEvent.ACTION_PERFORMED, "Index tables"));
-        
+
         } else {
             System.err.println("Not saving values");
         }
@@ -269,6 +271,7 @@ public class pgJFrame extends JFrame {
     }
 
     protected class MyUndoableEditListener implements UndoableEditListener {
+        @Override
         public void undoableEditHappened(UndoableEditEvent e) {
             // Remember the edit and update the menus (Unless its a style change (color keywords)
             if (!e.getEdit().getPresentationName().equals("style change")) {
@@ -374,7 +377,7 @@ public class pgJFrame extends JFrame {
                 protected DefaultTableModel doInBackground() throws Exception {
                     DefaultTableModel m = null;
                     String query = (null != queryTextPane.getSelectedText()) ? queryTextPane.getSelectedText() : queryTextPane.getText();
-                    
+
                     try {
                         QueryExecutor qe = new QueryExecutor(connectionManager);
                         m = qe.executeQuery(query);
@@ -422,6 +425,7 @@ public class pgJFrame extends JFrame {
     @SuppressWarnings("serial")
     protected class SelectAutocompleteAction extends AbstractAction {
 
+        @Override
         public void actionPerformed(ActionEvent ev) {
             if (codeCompletetionDocumentListener.getMode() == Mode.COMPLETION) {
                 int pos = queryTextPane.getSelectionEnd();
@@ -478,7 +482,7 @@ public class pgJFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             int returnVal = filechooser.showOpenDialog(pgJFrame.this);
-            
+
             if (returnVal == JFileChooser.APPROVE_OPTION) {
 
                 try {
@@ -492,11 +496,11 @@ public class pgJFrame extends JFrame {
         }
 
     }
-    
-    
+
+
     @SuppressWarnings("serial")
     protected class IndexAction extends AbstractAction {
-        
+
         public IndexAction() {
             super("Index tables");
         }
@@ -515,10 +519,10 @@ public class pgJFrame extends JFrame {
                     }
                     return true;
                 }
-                
+
             }.execute();
         }
-        
+
     }
 
 }
