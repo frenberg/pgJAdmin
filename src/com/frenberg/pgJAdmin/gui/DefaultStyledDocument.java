@@ -3,6 +3,7 @@ package com.frenberg.pgJAdmin.gui;
 import java.awt.Color;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.SwingWorker;
@@ -16,10 +17,16 @@ import com.frenberg.pgJAdmin.utils.Keywords;
 @SuppressWarnings("serial")
 public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocument {
 
-    final StyleContext cont      = StyleContext.getDefaultStyleContext();
-    final AttributeSet attrBlue  = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLUE);
-    final AttributeSet attrBlack = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground, Color.BLACK);
-    final Pattern      pattern   = Pattern.compile(Keywords.getRegexString(), Pattern.CASE_INSENSITIVE);
+    final StyleContext cont                = StyleContext.getDefaultStyleContext();
+    final AttributeSet attrKeyword         = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground,
+            Color.BLUE);
+    final AttributeSet attrDefault         = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground,
+            Color.BLACK);
+    final AttributeSet attrComment         = cont.addAttribute(cont.getEmptySet(), StyleConstants.Foreground,
+            Color.ORANGE);
+    final Pattern      keywordPattern      = Pattern.compile(Keywords.getRegexString(), Pattern.CASE_INSENSITIVE);
+    final Pattern      commentPattern      = Pattern.compile("\\-\\-.*");
+    final Pattern      blockCommentPattern = Pattern.compile("\\/\\*.*?\\*\\/", Pattern.DOTALL);
 
     /*
      * (non-Javadoc)
@@ -31,16 +38,24 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
 
         String text = getText(0, getLength());
         int start = findLastNonWordChar(text, offset);
-        if (start < 0)
-            start = 0;
         int end = findFirstNonWordChar(text, offset);
 
-        if (pattern.matcher(text.substring(start, end)).matches()) {
-            setCharacterAttributes(start, end - start, attrBlue, false);
+        if (keywordPattern.matcher(text.substring(start, end)).matches()) {
+            setCharacterAttributes(start, end - start, attrKeyword, true);
         } else {
-            setCharacterAttributes(start, end - start, attrBlack, false);
+            setCharacterAttributes(start, end - start, attrDefault, true);
         }
 
+        Matcher matcher;
+        matcher = commentPattern.matcher(text);
+        while (matcher.find()) {
+            setCharacterAttributes(matcher.start(), matcher.end() - matcher.start(), attrComment, true);
+        }
+
+        matcher = blockCommentPattern.matcher(text);
+        while (matcher.find()) {
+            setCharacterAttributes(matcher.start(), matcher.end() - matcher.start(), attrComment, true);
+        }
     }
 
     /*
@@ -50,15 +65,16 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
      */
     @Override
     public void insertString(int offset, String string, AttributeSet a) throws BadLocationException {
-        super.insertString(offset, string, attrBlack);
+        super.insertString(offset, string, attrDefault);
 
-        new MySwingWorker(offset, string).execute();
+        String text = getText(0, getLength());
+        new KeywordSwingWorker(offset, string, text).execute();
 
     }
 
     class Keyword {
-        int          start;
-        int          end;
+        int start;
+        int end;
 
         public Keyword(int start, int end) {
             this.start = start;
@@ -75,33 +91,34 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
 
     }
 
-    class MySwingWorker extends SwingWorker<List<Keyword>, Keyword> {
+    class KeywordSwingWorker extends SwingWorker<List<Keyword>, Keyword> {
 
-        int offset;
-        String string;
+        int          offset;
+        String       string;
+        final String text;
 
-        public MySwingWorker(int offset, String string) {
+        public KeywordSwingWorker(int offset, String string, String text) {
             this.offset = offset;
             this.string = string;
+            this.text = text;
         }
 
         @Override
         protected List<Keyword> doInBackground() throws Exception {
             List<Keyword> keywords = new LinkedList<Keyword>();
-            String text = getText(0, getLength());
             int start = findLastNonWordChar(text, offset);
             if (start < 0) {
                 start = 0;
             }
             int end = findFirstNonWordChar(text, offset + string.length());
-            
+
             int wordStart = start;
             int wordEnd = start;
             Keyword keyword;
 
             while (wordEnd <= end && !isCancelled()) {
                 if (wordEnd == end || String.valueOf(text.charAt(wordEnd)).matches("\\W")) {
-                    if (pattern.matcher(text.substring(wordStart, wordEnd)).matches()) {
+                    if (keywordPattern.matcher(text.substring(wordStart, wordEnd)).matches()) {
                         keyword = new Keyword(wordStart, wordEnd - wordStart);
                         keywords.add(keyword);
                         publish(keyword);
@@ -110,14 +127,30 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
                 }
                 wordEnd++;
             }
-            
+
             return keywords;
         }
 
         @Override
         protected void process(List<Keyword> chunks) {
             for (Keyword keyword : chunks) {
-                setCharacterAttributes(keyword.getStart(), keyword.getEnd(), attrBlue, false);
+                setCharacterAttributes(keyword.getStart(), keyword.getEnd(), attrKeyword, false);
+            }
+        }
+
+        @Override
+        protected void done() {
+            // TODO Auto-generated method stub
+            super.done();
+            Matcher matcher;
+            matcher = commentPattern.matcher(text);
+            while (matcher.find()) {
+                setCharacterAttributes(matcher.start(), matcher.end() - matcher.start(), attrComment, true);
+            }
+
+            matcher = blockCommentPattern.matcher(text);
+            while (matcher.find()) {
+                setCharacterAttributes(matcher.start(), matcher.end() - matcher.start(), attrComment, true);
             }
         }
 
@@ -129,7 +162,7 @@ public class DefaultStyledDocument extends javax.swing.text.DefaultStyledDocumen
                 break;
             }
         }
-        return index;
+        return index < 0 ? 0 : index;
     }
 
     private int findFirstNonWordChar(String text, int index) {

@@ -37,7 +37,7 @@ import javax.swing.text.Utilities;
  *
  * This class was designed to be used as a component added to the row header of
  * a JScrollPane.
- * 
+ *
  * This class was originally downloaded from http://www.camick.com/
  */
 public class TextLineNumber extends JPanel implements CaretListener, DocumentListener, PropertyChangeListener {
@@ -94,7 +94,8 @@ public class TextLineNumber extends JPanel implements CaretListener, DocumentLis
         setFont(component.getFont());
 
         setBorderGap(5);
-        setCurrentLineForeground(Color.RED);
+        //        setCurrentLineForeground(Color.RED);
+        setCurrentLineForeground(Color.BLACK);
         setDigitAlignment(RIGHT);
         setMinimumDisplayDigits(minimumDisplayDigits);
 
@@ -185,7 +186,7 @@ public class TextLineNumber extends JPanel implements CaretListener, DocumentLis
      * <li>TextLineNumber.CENTER
      * <li>TextLineNumber.RIGHT (default)
      * </ul>
-     * 
+     *
      * @param currentLineForeground
      *            the Color used to render the current line
      */
@@ -262,7 +263,7 @@ public class TextLineNumber extends JPanel implements CaretListener, DocumentLis
                 if (isCurrentLine(rowStartOffset))
                     g.setColor(getCurrentLineForeground());
                 else
-                    g.setColor(getForeground());
+                    g.setColor(Color.GRAY);
 
                 // Get the line number as a string and then determine the
                 // "X" and "Y" offsets for drawing the string.
