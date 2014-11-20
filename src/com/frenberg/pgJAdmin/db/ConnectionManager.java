@@ -107,6 +107,7 @@ public class ConnectionManager {
 		testConnectionProperties.put("password", password);
 		
 		try {
+	        DriverManager.setLoginTimeout(5);
 			testConnection = DriverManager.getConnection(connectionString, testConnectionProperties);
 			
 			if (!"".equals(schema)) {
@@ -133,6 +134,7 @@ public class ConnectionManager {
 		// jdbc:postgresql:database
 		// jdbc:postgresql://host/database
 		// jdbc:postgresql://host:port/database
+		DriverManager.setLoginTimeout(5);
 		conn = DriverManager.getConnection(connectionString, connectionProps);
 
 		if (!"".equals(schema)) {

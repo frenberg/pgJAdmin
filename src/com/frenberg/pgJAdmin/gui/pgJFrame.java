@@ -69,7 +69,8 @@ public class pgJFrame extends JFrame {
      */
     public pgJFrame(String title) throws HeadlessException {
         super(title);
-        setBounds(100, 100, 800, 600);
+        setSize(800, 600);
+        setLocationRelativeTo(null);
 
         getContentPane().setLayout(new BorderLayout(0, 0));
         buildMenu();
@@ -114,7 +115,7 @@ public class pgJFrame extends JFrame {
                 return false;
             }
         });
-
+        
     }
 
     protected void buildMenu() {
