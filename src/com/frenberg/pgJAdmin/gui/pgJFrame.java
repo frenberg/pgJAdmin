@@ -80,7 +80,7 @@ public class pgJFrame extends JFrame {
 
         getContentPane().add(splitPane, BorderLayout.CENTER);
         setVisible(true);
-        splitPane.setDividerLocation(.5f);
+        splitPane.setDividerLocation(.7f);
 
         filechooser.setAcceptAllFileFilterUsed(false);
         filechooser.setFileFilter(new FileFilter() {
