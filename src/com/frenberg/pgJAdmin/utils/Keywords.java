@@ -413,16 +413,16 @@ public class Keywords {
 
         return keywords;
     }
-    
+
     /**
      * User for the purpose of highlighting keywords in the code.
      * So this won't need to be merged with user data since for example
      * table names should not be syntax highlighted
-     * 
+     *
      * @return String
      */
     public static String getRegexString() {
-        return "(\\W)*(" + Joiner.on("|").join(getKeywords()) + ")";
-        
+        return "(" + Joiner.on("|").join(getKeywords()) + ")";
+
     }
 }

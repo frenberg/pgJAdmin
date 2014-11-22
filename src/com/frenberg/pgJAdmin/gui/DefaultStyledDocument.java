@@ -29,7 +29,7 @@ javax.swing.text.DefaultStyledDocument {
             StyleConstants.Foreground, Color.BLACK);
     final AttributeSet attrComment = cont.addAttribute(cont.getEmptySet(),
             StyleConstants.Foreground, Color.ORANGE);
-    final Pattern keywordPattern = Pattern.compile(Keywords.getRegexString(),
+    final Pattern keywordPattern = Pattern.compile("(\\W)*" + Keywords.getRegexString(),
             Pattern.CASE_INSENSITIVE);
     final Pattern commentPattern = Pattern.compile("\\-\\-.*");
     final Pattern blockCommentPattern = Pattern.compile("\\/\\*.*?\\*\\/",
@@ -154,8 +154,7 @@ javax.swing.text.DefaultStyledDocument {
             Keyword keyword;
 
             while (wordEnd <= end && !isCancelled()) {
-                if (wordEnd == end
-                        || String.valueOf(text.charAt(wordEnd)).matches("\\W")) {
+                if (String.valueOf(text.charAt(wordEnd)).matches("\\W")) {
                     if (keywordPattern.matcher(
                             text.substring(wordStart, wordEnd)).matches()) {
                         keyword = new Keyword(wordStart, wordEnd - wordStart);
