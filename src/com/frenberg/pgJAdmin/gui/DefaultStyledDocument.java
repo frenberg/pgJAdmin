@@ -144,9 +144,6 @@ javax.swing.text.DefaultStyledDocument {
         protected List<Keyword> doInBackground() throws Exception {
             List<Keyword> keywords = new LinkedList<Keyword>();
             int start = findLastNonWordChar(text, offset);
-            if (start < 0) {
-                start = 0;
-            }
             int end = findFirstNonWordChar(text, offset + string.length());
 
             int wordStart = start;
