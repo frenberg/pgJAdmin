@@ -169,7 +169,7 @@ public class ConnectionManager {
 				}
 			}
 		} catch (Exception e) {
-			// This is ok, we use default instead...
+			return false;
 		}
 		
 		this.user = settings.get("user");

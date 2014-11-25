@@ -16,22 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.JTextPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingWorker;
+import javax.swing.*;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileFilter;
@@ -62,6 +47,7 @@ public class pgJFrame extends JFrame {
     protected JTable            outputTable;
     protected CodeComplete      codeCompletetionDocumentListener;
     protected JFileChooser      filechooser       = new JFileChooser();
+    protected String            defaultTitle;
 
     /**
      * @param title
@@ -69,6 +55,7 @@ public class pgJFrame extends JFrame {
      */
     public pgJFrame(String title) throws HeadlessException {
         super(title);
+        this.defaultTitle = title;
         setSize(800, 600);
         setLocationRelativeTo(null);
 
@@ -76,7 +63,7 @@ public class pgJFrame extends JFrame {
         buildMenu();
 
         JSplitPane splitPane = buildGui();
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         getContentPane().add(splitPane, BorderLayout.CENTER);
         setVisible(true);
@@ -116,6 +103,14 @@ public class pgJFrame extends JFrame {
             }
         });
 
+        updateTitle();
+    }
+
+    protected void updateTitle() {
+        if (connectionManager.loadSettings()) {
+            String schema = connectionManager.getSchema();
+            setTitle(defaultTitle + " - " + schema);
+        }
     }
 
     protected void buildMenu() {
@@ -140,7 +135,7 @@ public class pgJFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // TODO Auto-generated method stub
                 // save changes
-                System.exit(JFrame.EXIT_ON_CLOSE);
+                System.exit(WindowConstants.EXIT_ON_CLOSE);
 
             }
         });
@@ -257,6 +252,7 @@ public class pgJFrame extends JFrame {
         }
 
         connectionDialog.dispose();
+        updateTitle();
     }
 
     protected boolean extendCodeComplete() {
