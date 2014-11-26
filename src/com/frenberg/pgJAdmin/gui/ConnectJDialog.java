@@ -22,30 +22,43 @@ import com.jgoodies.forms.layout.RowSpec;
 public class ConnectJDialog extends JDialog {
 
 	private boolean useValues = false;
-	private JTextField passwordField;
 	private JTextField userField;
-	private JTextField connectionStringField;
+	private JTextField passwordField;
+	private JTextField hostField;
+	private JTextField portField;
+	private JTextField databaseField;
 	private JTextField schemaField;
 
 	public ConnectJDialog(JFrame owner) {
 		super(owner);
+		setResizable(false);
 		setTitle("Connect to database");
 		setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
 
 		JPanel panel = new JPanel();
 		getContentPane().add(panel);
 		panel.setLayout(new FormLayout(new ColumnSpec[] {
-				FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("117px"),
+				FormFactory.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("117px"),
 				FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("24px"), ColumnSpec.decode("116px"),
+				ColumnSpec.decode("24px:grow"),
+				ColumnSpec.decode("116px"),
 				ColumnSpec.decode("86px"),
 				FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-				ColumnSpec.decode("75px"), }, new RowSpec[] {
-				FormFactory.UNRELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
-				FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
-				FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
-				FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("28px"),
-				RowSpec.decode("29px"), RowSpec.decode("29px"), }));
+				ColumnSpec.decode("75px"),},
+			new RowSpec[] {
+				FormFactory.UNRELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("28px"),
+				RowSpec.decode("29px"),
+				FormFactory.DEFAULT_ROWSPEC,
+				FormFactory.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("29px"),}));
 
 		// User
 		JLabel lblUser = new JLabel("User:");
@@ -55,13 +68,21 @@ public class ConnectJDialog extends JDialog {
 		JLabel lblPassword = new JLabel("Password:");
 		panel.add(lblPassword, "2, 4, left, center");
 
-		// Connection String
-		JLabel lblConnectionString = new JLabel("Connection string:");
-		panel.add(lblConnectionString, "2, 6, left, center");
+		// Hostname
+		JLabel lblHost = new JLabel("Host:");
+		panel.add(lblHost, "2, 6, left, center");
+		
+		// Port
+		JLabel lblPort = new JLabel("Port:");
+		panel.add(lblPort, "2, 8, left, center");
+		
+		// Database
+		JLabel lblConnectionString = new JLabel("Database:");
+		panel.add(lblConnectionString, "2, 9, left, center");
 
 		// Schema
 		JLabel lblSchema = new JLabel("Schema:");
-		panel.add(lblSchema, "2, 8, left, center");
+		panel.add(lblSchema, "2, 10, left, center");
 
 		// Actions
 		JButton btnSave = new JButton("Save");
@@ -75,8 +96,8 @@ public class ConnectJDialog extends JDialog {
 
 			}
 		});
-		panel.add(btnSave, "8, 10, left, top");
-
+		panel.add(btnSave, "8, 12, left, top");
+		
 		JButton btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener() {
 
@@ -86,7 +107,7 @@ public class ConnectJDialog extends JDialog {
 				closeDialog();
 			}
 		});
-		panel.add(btnCancel, "6, 10, left, top");
+		panel.add(btnCancel, "6, 12, left, top");
 
 		JButton btnTestConnection = new JButton("Test Connection");
 		btnTestConnection.addActionListener(new ActionListener() {
@@ -97,28 +118,35 @@ public class ConnectJDialog extends JDialog {
 				testConnection();
 			}
 		});
-		panel.add(btnTestConnection, "2, 10, 3, 1, left, top");
-
-		passwordField = new JTextField();
-		panel.add(passwordField, "4, 4, 5, 1, fill, top");
-		passwordField.setColumns(10);
+		panel.add(btnTestConnection, "2, 12, 3, 1, left, top");
 
 		userField = new JTextField();
 		panel.add(userField, "4, 2, 5, 1, fill, top");
 		userField.setColumns(10);
 
-		connectionStringField = new JTextField();
-		panel.add(connectionStringField, "4, 6, 5, 1, fill, top");
-		connectionStringField.setColumns(10);
+		passwordField = new JTextField();
+		panel.add(passwordField, "4, 4, 5, 1, fill, top");
+		passwordField.setColumns(10);
+
+		hostField = new JTextField();
+		panel.add(hostField, "4, 6, 5, 1, fill, top");
+		hostField.setColumns(10);
+		
+		portField = new JTextField();
+		panel.add(portField, "4, 8, 5, 1, fill, top");
+		portField.setColumns(10);
+
+		databaseField = new JTextField();
+		panel.add(databaseField, "4, 9, 5, 1, fill, top");
+		databaseField.setColumns(10);
 
 		schemaField = new JTextField();
-		panel.add(schemaField, "4, 8, 5, 1, fill, top");
+		panel.add(schemaField, "4, 10, 5, 1, fill, top");
 		schemaField.setColumns(10);
 
 		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
-		setSize(450, 230);
+		setSize(450, 260);
 		setLocationRelativeTo(owner);
-		setResizable(false);
 
 	}
 
@@ -138,12 +166,28 @@ public class ConnectJDialog extends JDialog {
 		this.passwordField.setText(password);
 	}
 
-	public String getConnectionString() {
-		return connectionStringField.getText();
+	public String getHost() {
+		return hostField.getText();
 	}
 
-	public void setConnectionString(String connectionString) {
-		this.connectionStringField.setText(connectionString);
+	public void setHost(String host) {
+		this.hostField.setText(host);
+	}
+
+	public String getPort() {
+		return portField.getText();
+	}
+
+	public void setPort(String port) {
+		this.portField.setText(port);
+	}
+
+	public String getDatabase() {
+		return databaseField.getText();
+	}
+
+	public void setDatabase(String database) {
+		this.databaseField.setText(database);
 	}
 
 	public String getSchema() {
@@ -165,8 +209,8 @@ public class ConnectJDialog extends JDialog {
 	private void testConnection() {
 		ConnectionManager cm = new ConnectionManager();
 		try {
-			if (cm.testConnection(getUser(), getPassword(),
-					getConnectionString(), getSchema())) {
+			if (cm.testConnection(getUser(), getPassword(), getHost(), getPort(),
+					getDatabase(), getSchema())) {
 				JOptionPane.showMessageDialog(this, "Connection successful",
 						"Testing connection", JOptionPane.PLAIN_MESSAGE);
 			} else {

@@ -55,6 +55,7 @@ public class pgJFrame extends JFrame {
      */
     public pgJFrame(String title) throws HeadlessException {
         super(title);
+        System.err.println("Init gui: " + System.currentTimeMillis());
         this.defaultTitle = title;
         setSize(800, 600);
         setLocationRelativeTo(null);
@@ -67,6 +68,7 @@ public class pgJFrame extends JFrame {
 
         getContentPane().add(splitPane, BorderLayout.CENTER);
         setVisible(true);
+        System.err.println("Visible: " + System.currentTimeMillis());
         splitPane.setDividerLocation(.7f);
 
         filechooser.setAcceptAllFileFilterUsed(false);
@@ -104,6 +106,7 @@ public class pgJFrame extends JFrame {
         });
 
         updateTitle();
+        System.err.println("Done: " + System.currentTimeMillis());
     }
 
     protected void updateTitle() {
@@ -221,11 +224,13 @@ public class pgJFrame extends JFrame {
         ConnectJDialog connectionDialog = new ConnectJDialog(this);
         connectionDialog.setUser(connectionManager.getUser());
         connectionDialog.setPassword(connectionManager.getPassword());
-        if (connectionManager.getConnectionString() != null && !"".equals(connectionManager.getConnectionString())) {
-            connectionDialog.setConnectionString(connectionManager.getConnectionString());
+        connectionDialog.setHost(connectionManager.getHost());
+        if (connectionManager.getPort() != null && !"".equals(connectionManager.getPort())) {
+            connectionDialog.setPort(connectionManager.getPort());
         } else {
-            connectionDialog.setConnectionString("jdbc:postgresql://[host]:[port]/[database]");
+            connectionDialog.setPort("5432");
         }
+        connectionDialog.setDatabase(connectionManager.getDatabase());
         connectionDialog.setSchema(connectionManager.getSchema());
         connectionDialog.setVisible(true); // this will halt and go to modality
         // mode
@@ -233,7 +238,9 @@ public class pgJFrame extends JFrame {
         if (connectionDialog.useValues()) {
             connectionManager.setUser(connectionDialog.getUser().trim());
             connectionManager.setPassword(connectionDialog.getPassword().trim());
-            connectionManager.setConnectionString(connectionDialog.getConnectionString().trim());
+            connectionManager.setHost(connectionDialog.getHost().trim());
+            connectionManager.setPort(connectionDialog.getPort().trim());
+            connectionManager.setDatabase(connectionDialog.getDatabase().trim());
             connectionManager.setSchema(connectionDialog.getSchema().trim());
 
             try {

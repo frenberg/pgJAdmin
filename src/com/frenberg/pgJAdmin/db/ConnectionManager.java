@@ -37,28 +37,35 @@ public class ConnectionManager {
 	protected String port;
 	protected String database;
 	protected String schema = null;
-	protected String connectionString;
 
 	public ConnectionManager() {
 		this.loadSettings();
 	}
 	
+	public String getUser() {
+		return user;
+	}
+
 	public String getPassword() {
 		return password;
 	}
 
-	public String getUser() {
-		return user;
+	public String getHost() {
+		return host;
+	}
+
+	public String getPort() {
+		return port;
+	}
+
+	public String getDatabase() {
+		return database;
 	}
 
 	public String getSchema() {
 		return schema;
 	}
 	
-	public String getConnectionString() {
-		return connectionString;
-	}
-
 	public void setUser(String user) {
 		this.user = user;
 	}
@@ -83,15 +90,11 @@ public class ConnectionManager {
 		this.schema = schema;
 	}
 
-	public void setConnectionString(String connectionString) {
-		this.connectionString = connectionString;
-	}
-	
 	public boolean testConnection() {
 	    boolean response = false;
 	    try {
-	        if (testConnection(getUser(), getPassword(), getConnectionString(), getSchema())) {
-	            return true;
+	        if (testConnection(getUser(), getPassword(), getHost(), getPort(), getDatabase(), getSchema())) {
+	        	response = true;
 	        }
 	    } catch(Exception e) {
 	        
@@ -99,13 +102,14 @@ public class ConnectionManager {
 	    return response;
 	}
 	
-	public boolean testConnection(String user, String password, String connectionString, String schema) throws Exception {
+	public boolean testConnection(String user, String password, String host, String port, String database, String schema) throws Exception {
 		
 		Connection testConnection = null;
 		Properties testConnectionProperties = new Properties();
 		testConnectionProperties.put("user", user);
 		testConnectionProperties.put("password", password);
-		
+		String connectionString = "jdbc:postgresql://" + host + ":" + port + "/" + database;
+
 		try {
 	        DriverManager.setLoginTimeout(5);
 			testConnection = DriverManager.getConnection(connectionString, testConnectionProperties);
@@ -130,9 +134,8 @@ public class ConnectionManager {
 		Properties connectionProps = new Properties();
 		connectionProps.put("user", user);
 		connectionProps.put("password", password);
+		String connectionString = "jdbc:postgresql://" + host + ":" + port + "/" + database;
 
-		// jdbc:postgresql:database
-		// jdbc:postgresql://host/database
 		// jdbc:postgresql://host:port/database
 		DriverManager.setLoginTimeout(5);
 		conn = DriverManager.getConnection(connectionString, connectionProps);
@@ -174,7 +177,10 @@ public class ConnectionManager {
 		
 		this.user = settings.get("user");
 		this.password = settings.get("password");
-		this.connectionString = settings.get("connectionString");
+//		this.connectionString = settings.get("connectionString");
+		this.host = settings.get("host");
+		this.port = settings.get("port");
+		this.database = settings.get("database");
 		this.schema = settings.get("schema");
 		
 		return true;
@@ -198,8 +204,16 @@ public class ConnectionManager {
 		el.appendChild(doc.createTextNode(settings.get("password")));
 		root.appendChild(el);
 
-		el = doc.createElement("connectionString");
-		el.appendChild(doc.createTextNode(settings.get("connectionString")));
+		el = doc.createElement("host");
+		el.appendChild(doc.createTextNode(settings.get("host")));
+		root.appendChild(el);
+
+		el = doc.createElement("port");
+		el.appendChild(doc.createTextNode(settings.get("port")));
+		root.appendChild(el);
+
+		el = doc.createElement("database");
+		el.appendChild(doc.createTextNode(settings.get("database")));
 		root.appendChild(el);
 
 		el = doc.createElement("schema");
@@ -223,7 +237,9 @@ public class ConnectionManager {
 		HashMap<String, String> settings = new HashMap<String, String>(4);
 		settings.put("user", this.user);
 		settings.put("password", this.password);
-		settings.put("connectionString", this.connectionString);
+		settings.put("host", this.host);
+		settings.put("port", this.port);
+		settings.put("database", this.database);
 		settings.put("schema", this.schema);
 
 		String filePath = System.getProperty("user.home") + System.getProperty("file.separator") + ".pgjadmin.xml";
