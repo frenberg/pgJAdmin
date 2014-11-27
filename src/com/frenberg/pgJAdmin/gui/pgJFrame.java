@@ -111,8 +111,10 @@ public class pgJFrame extends JFrame {
 
     protected void updateTitle() {
         if (connectionManager.loadSettings()) {
+            String host = connectionManager.getHost();
+            String db = connectionManager.getDatabase();
             String schema = connectionManager.getSchema();
-            setTitle(defaultTitle + " - " + schema);
+            setTitle(defaultTitle + " - " + host + "/" + db + "/" + schema);
         }
     }
 
