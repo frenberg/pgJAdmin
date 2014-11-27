@@ -239,9 +239,11 @@ public class pgJFrame extends JFrame {
             connectionManager.setUser(connectionDialog.getUser().trim());
             connectionManager.setPassword(connectionDialog.getPassword().trim());
             connectionManager.setHost(connectionDialog.getHost().trim());
-            connectionManager.setPort(connectionDialog.getPort().trim());
+            String port = connectionDialog.getPort().trim().equals("") ? "5432" : connectionDialog.getPort().trim();
+            connectionManager.setPort(port);
             connectionManager.setDatabase(connectionDialog.getDatabase().trim());
-            connectionManager.setSchema(connectionDialog.getSchema().trim());
+            String schema = connectionDialog.getSchema().trim().equals("") ? "public" : connectionDialog.getSchema().trim();
+            connectionManager.setSchema(schema);
 
             try {
                 connectionManager.saveSettings();
