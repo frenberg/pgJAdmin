@@ -17,44 +17,43 @@ import com.google.common.collect.Ordering;
 public class QueryExecutor {
 
 	private Connection connection;
-	private Pattern pattern = Pattern.compile("select|returning", Pattern.CASE_INSENSITIVE);
     static final ImmutableSortedMap<Integer, String> TYPES = new ImmutableSortedMap.Builder<Integer, String>(Ordering.natural())
-            .put(new Integer(-16), "LONGNVARCHAR")
-            .put(new Integer(-15), "NCHAR")
-            .put(new Integer(-9), "NVARCHAR")
-            .put(new Integer(-8), "ROWID")
-            .put(new Integer(-7), "BIT")
-            .put(new Integer(-6), "TINYINT")
-            .put(new Integer(-5), "BIGINT")
-            .put(new Integer(-4), "LONGVARBINARY")
-            .put(new Integer(-3), "VARBINARY")
-            .put(new Integer(-2), "BINARY")
-            .put(new Integer(-1), "LONGVARCHAR")
-            .put(new Integer(0), "NULL")
-            .put(new Integer(1), "CHAR")
-            .put(new Integer(2), "NUMERIC")
-            .put(new Integer(3), "DECIMAL")
-            .put(new Integer(4), "INTEGER")
-            .put(new Integer(5), "SMALLINT")
-            .put(new Integer(6), "FLOAT")
-            .put(new Integer(7), "REAL")
-            .put(new Integer(8), "DOUBLE")
-            .put(new Integer(12), "VARCHAR")
-            .put(new Integer(16), "BOOLEAN")
-            .put(new Integer(70), "DATALINK")
-            .put(new Integer(91), "DATE")
-            .put(new Integer(92), "TIME")
-            .put(new Integer(93), "TIMESTAMP")
-            .put(new Integer(1111), "OTHER")
-            .put(new Integer(2000), "JAVA_OBJECT")
-            .put(new Integer(2001), "DISTINCT")
-            .put(new Integer(2002), "STRUCT")
-            .put(new Integer(2003), "ARRAY")
-            .put(new Integer(2004), "BLOB")
-            .put(new Integer(2005), "CLOB")
-            .put(new Integer(2006), "REF")
-            .put(new Integer(2009), "SQLXML")
-            .put(new Integer(2011), "SQLXML")
+            .put(-16, "LONGNVARCHAR")
+            .put(-15, "NCHAR")
+            .put(-9, "NVARCHAR")
+            .put(-8, "ROWID")
+            .put(-7, "BIT")
+            .put(-6, "TINYINT")
+            .put(-5, "BIGINT")
+            .put(-4, "LONGVARBINARY")
+            .put(-3, "VARBINARY")
+            .put(-2, "BINARY")
+            .put(-1, "LONGVARCHAR")
+            .put(0, "NULL")
+            .put(1, "CHAR")
+            .put(2, "NUMERIC")
+            .put(3, "DECIMAL")
+            .put(4, "INTEGER")
+            .put(5, "SMALLINT")
+            .put(6, "FLOAT")
+            .put(7, "REAL")
+            .put(8, "DOUBLE")
+            .put(12, "VARCHAR")
+            .put(16, "BOOLEAN")
+            .put(70, "DATALINK")
+            .put(91, "DATE")
+            .put(92, "TIME")
+            .put(93, "TIMESTAMP")
+            .put(1111, "OTHER")
+            .put(2000, "JAVA_OBJECT")
+            .put(2001, "DISTINCT")
+            .put(2002, "STRUCT")
+            .put(2003, "ARRAY")
+            .put(2004, "BLOB")
+            .put(2005, "CLOB")
+            .put(2006, "REF")
+            .put(2009, "SQLXML")
+            .put(2011, "SQLXML")
            .build();	
 	
 	
@@ -75,40 +74,47 @@ public class QueryExecutor {
 	 * @throws Exception 
 	 */
 	public DefaultTableModel executeQuery(String query) throws Exception {
-		ResultSet rs = null;
+		ResultSet rs;
 		ResultSetMetaData metaData;
 		DefaultTableModel tableModel = new DefaultTableModel();
 		if (!"".equals(query)) {
 		    if (this.connection.isValid(1)) {
 		        Statement stmt = this.connection.createStatement();
-    			
-    			// if query match select or returning then use executeQuery else just execute
-    			Matcher m = pattern.matcher(query);
-    			if (m.find()) {
-    				rs = stmt.executeQuery(query);
-    				metaData = rs.getMetaData();
-    
-    				// Names of columns
-    				Vector<String> columnNames = new Vector<String>();
-    				int columnCount = metaData.getColumnCount();
-    				for (int i = 1; i <= columnCount; i++) {
-    					columnNames.add(metaData.getColumnName(i) + " (" + getDataTypeFromType(metaData.getColumnType(i)) + ")");
-    				}
-    
-    				// Data of the table
-    				Vector<Vector<Object>> data = new Vector<Vector<Object>>();
-    				while (rs.next()) {
-    					Vector<Object> vector = new Vector<Object>();
-    					for (int i = 1; i <= columnCount; i++) {
-    						vector.add(rs.getObject(i));
-    					}
-    					data.add(vector);
-    				}
-    
-    				tableModel.setDataVector(data, columnNames);
-    			} else {
-    				stmt.execute(query);
-    			}
+
+				boolean hasResulset = stmt.execute(query);
+				int updateCount = stmt.getUpdateCount();
+
+
+				while (hasResulset || (updateCount != -1)) {
+					if (hasResulset){
+						rs = stmt.getResultSet();
+						if (rs != null) {
+							metaData = rs.getMetaData();
+
+							// Names of columns
+							Vector<String> columnNames = new Vector<String>();
+							int columnCount = metaData.getColumnCount();
+							for (int i = 1; i <= columnCount; i++) {
+								columnNames.add(metaData.getColumnName(i) + " (" + getDataTypeFromType(metaData.getColumnType(i)) + ")");
+							}
+
+							// Data of the table
+							Vector<Vector<Object>> data = new Vector<Vector<Object>>();
+							while (rs.next()) {
+								Vector<Object> vector = new Vector<Object>();
+								for (int i = 1; i <= columnCount; i++) {
+									vector.add(rs.getObject(i));
+								}
+								data.add(vector);
+							}
+
+							tableModel.setDataVector(data, columnNames);
+							rs.close();
+						}
+					}
+					hasResulset = stmt.getMoreResults();
+					updateCount = stmt.getUpdateCount();
+				}
 		    } else {
 		        throw new Exception("No valid connection.");
 		    }
